@@ -1,0 +1,11 @@
+FROM python:3.12.0b4-slim-bullseye
+LABEL maintainer "edberg1974 <edberg.s@gmail.com>"
+
+COPY ./modelservice/ /app
+RUN pip install redis flask
+
+WORKDIR /app
+ENV MODELKEY='modelfile'
+ENV REDISHOST='redis_host'
+ENTRYPOINT ["python3"]
+CMD ["modelservice.py"]
