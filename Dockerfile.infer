@@ -9,5 +9,5 @@ WORKDIR /app
 COPY infer/infer.py .
 RUN pip3 install flask
 
-ENTRYPOINT ["python3"]
 CMD ["infer.py"]
+ENTRYPOINT ["python3"]

@@ -62,6 +62,7 @@ def init():
     else:
         model_url = "http://localhost:5002/model"
     
+    logging.info(f"model url : {model_url}")
     # 옵션에 model_key가 포함되어 있으면 url에 쿼리를 추가합니다.
     if args.model_key:
         model_url += f"?model_key={args.model_key}"

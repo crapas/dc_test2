@@ -28,7 +28,26 @@ else:
         logging.critical("ENV REDISPORT is not valid")
         exit -1
 
-redis_client = redis.StrictRedis(host=redis_host, port=redis_port, db=0)
+# 도커 컴포즈(2)를 위한 수정
+# RSTIMEOUT에 설정된 값을 기준으로, 이 시간 이상 redis 서버가 응답이 없으면 종료
+rs_timeout_str = os.environ.get('RSTIMEOUT')
+if rs_timeout_str is not None:
+    logging.info("Checking REDIS Availability")
+    try:
+        redis_client = redis.StrictRedis(host=redis_host, port=redis_port, db=0, socket_timeout=int(rs_timeout_str))
+        ping_response = redis_client.ping()
+        if ping_response != b'PONG':
+            logging.critical("Error occured while cheking redis available")
+            exit -1
+        logging.info("Found REDIS available")
+    except Exception as e:
+        logging.critical(f"Error occured while cheking redis available - {e}")
+else:
+    logging.info("$RSTIMEOUT is not defined.")
+# 수정 끝
+    
+
+
 
 model_key = os.environ.get('MODELKEY')
 if model_key is None:

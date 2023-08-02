@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  infer_service_base:
+    build:
+      context: .
+      dockerfile: Dockerfile.infer
+    image: inferimage:latest
+    environment:
+      MSHOST: model_service
+      MSPORT: 5002
+      MSENDPOINT: /model
