@@ -3,7 +3,6 @@ version: '3'
 services:
   redis_service:
     image: redis
-    container_name: redis_service
     networks:
       - infer_network
 
@@ -13,9 +12,8 @@ services:
       dockerfile: Dockerfile.modelservice
     depends_on:
       - redis_service
-    container_name: model_service
     ports:
-      - "5002:5002"
+      - "${MSPORT}:5002"
     volumes:
       - ./model:/app/model
     environment:
@@ -29,23 +27,14 @@ services:
       - infer_network
 
   infer_service:
-    build:
-      context: .
-      dockerfile: Dockerfile.infer
+    extends:
+      file: infer-base.yml
+      service: infer_service_base
     depends_on:
       - redis_service
       - model_service
-    container_name: infer_service
     ports:
-      - "5001:5001"
-    environment:
-      # 삭제
-      #MODELURL: http://model_service:5002/model
-      # 추가
-      MSHOST: model_service
-      MSPORT: 5002
-      MSENDPOINT: /model
-      MSTIMEOUT: 10
+      - "${ISPORT1}:5001"
     networks:
       - infer_network
 
@@ -58,6 +47,20 @@ services:
       - ./model:/model
     command: -X POST -F "modelfile=@/model/modelfile1" -F "model_key=new_model" http://model_service:5002/model
     networks: 
+      - infer_network
+
+  infer_service_new:
+    extends:
+      file: infer-base.yml
+      service: infer_service_base
+    depends_on:
+      - redis_service
+      - model_service
+      - model_upload
+    ports:
+      - "${ISPORT2}:5011"
+    command: infer.py --model_key new_model --port 5011
+    networks:
       - infer_network
 
 networks:

@@ -10,3 +10,4 @@ services:
       MSHOST: model_service
       MSPORT: 5002
       MSENDPOINT: /model
+      MSTIMEOUT: 10

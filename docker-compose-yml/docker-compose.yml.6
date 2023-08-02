@@ -24,6 +24,7 @@ services:
       REDISHOST: redis_service
       # 추가
       MODELKEY: default_model
+      RSTIMEOUT: 10
     networks:
       - infer_network
 
@@ -48,26 +49,24 @@ services:
     volumes:
       - ./model:/model
     command: -X POST -F "modelfile=@/model/modelfile1" -F "model_key=new_model" http://model_service:5002/model
-    networks:
+    networks: 
       - infer_network
-  
+
   infer_service_new:
     extends:
       file: infer-base.yml
       service: infer_service_base
-    container_name: infer_service_new
     depends_on:
       - redis_service
       - model_service
       - model_upload
+    container_name: infer_service_new
     ports:
       - "5011:5011"
     command: infer.py --model_key new_model --port 5011
-    networks: ["infer_network", "other_network"]
-#      - infer_network
-    
+    networks:
+      - infer_network
+
 networks:
   infer_network:
-    driver: bridge
-  other_network:
     driver: bridge

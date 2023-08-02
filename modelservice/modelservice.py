@@ -31,18 +31,23 @@ else:
 # 도커 컴포즈(2)를 위한 수정
 # RSTIMEOUT에 설정된 값을 기준으로, 이 시간 이상 redis 서버가 응답이 없으면 종료
 rs_timeout_str = os.environ.get('RSTIMEOUT')
+
 if rs_timeout_str is not None:
+    logging.info(type(rs_timeout_str))
+    logging.info(rs_timeout_str)
     logging.info("Checking REDIS Availability")
     try:
         redis_client = redis.StrictRedis(host=redis_host, port=redis_port, db=0, socket_timeout=int(rs_timeout_str))
         ping_response = redis_client.ping()
-        if ping_response != b'PONG':
+        if ping_response != True:
             logging.critical("Error occured while cheking redis available")
-            exit -1
+            exit(-1)
         logging.info("Found REDIS available")
     except Exception as e:
         logging.critical(f"Error occured while cheking redis available - {e}")
+        exit(-1)
 else:
+    redis_client = redis.StrictRedis(host=redis_host, port=redis_port, db=0)
     logging.info("$RSTIMEOUT is not defined.")
 # 수정 끝
     
@@ -67,7 +72,7 @@ if model_path is not None and model_file is not None:
             redis_client.set(model_key, model_data)
             logging.info("Modelfile is uploaded succefully at starting.")
         except Exception as e:
-            logging.error("Modelfile can't be uploaded for server issue. Check redis server")
+            logging.error(f"Modelfile can't be uploaded for server issue. Check redis server : {e}")
 
     else:
         logging.error("$MODELPATH and $MODELFILE exist, but $MODELPATH/$MODELFILE isn't valid file, so modelfile cannot be uploaded at starting.")
@@ -123,6 +128,13 @@ def send_model():
     except Exception as e:
         logging.error('There are some errors.')
         flask.abort(404, 'Modelfile is not provided from redis server')
+
+# 도커 컴포즈(2)를 위한 추가
+# 생사 여부를 확인해주는 GET / 메써드를 추가합니다.
+@app.route('/', methods=['GET'])
+def i_am_alive():
+    return "model service is alive", 200
+# 추가 끝
 
 if __name__ == '__main__':      
     app.run(host='0.0.0.0', port=5002)                
